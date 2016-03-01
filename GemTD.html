@@ -1,0 +1,578 @@
+<!doctype html>
+<html>
+<head>
+<script src="./jquery-2.1.4.min.js"></script>
+</head>
+<body>
+<div id="gameArea"></div>
+
+<script>
+
+var noGoColor="black";
+var pathColor="grey";
+var defaultColor="white";
+
+
+var Monster = function (left,top) {
+	var position = "absolute";
+}
+
+var LineSegment = function (ix1,iy1,ix2,iy2) {
+	var x1=ix1;
+	var y1=iy1;
+	var x2=ix2;
+	var y2=iy2;
+	this.isPointOnLine = function (x,y) {
+		if ( (x>= ix1 && x<= ix2 && y>=iy1 && y <=iy2)
+		|| (x>= ix2 && x<= ix1 && y>=iy2 && y <=iy1)
+		)
+		return true;
+	}
+}
+
+function pickMinArray(a,b,c,d) {
+alert(a + " - " + b + " - " + c + " - " + d);
+if (a.length<=b.length && a.length<=c.length && a.length<=d.length)
+return a;
+if (b.length<=a.length && b.length<=c.length && b.length<=d.length)
+return b;
+if (c.length<=a.length && c.length<=b.length && c.length<=d.length)
+return c;
+if (d.length<=a.length && d.length<=b.length && d.length<=c.length)
+return d;
+
+}
+
+
+//[0,0],[0,1],[0,2],[0,3],[1,3],[2,3],[3,3]
+beenTo=[];
+function haveBeenTo(dx,dy,path) {
+//alert(dx + " -- " + dy + " -- " + path + " -- " + beenTo);
+	for (x=0;x<beenTo.length;x++) {
+		if ((beenTo[x][0]==dx+1 && beenTo[x][1]==dy && path==1) ||
+			(beenTo[x][0]==dx && beenTo[x][1]==dy+1 && path==2) ||
+			(beenTo[x][0]==dx-1 && beenTo[x][1]==dy && path==3) ||
+			(beenTo[x][0]==dx && beenTo[x][1]==dy-1 && path==4)) {
+				//alert('wut');
+	//			alert('TRUE: ' + dx + " -- " + dy + " -- " + path + " -- " + beenTo);
+
+				return true;
+				
+			}
+	}
+	return false;
+}
+function findPathBetweenPoints(sx,sy,dx,dy) {
+	// weigh the path in the right direction...
+	// Get the difference between all 4 scenarios whichever gets closer faster
+	// 1 - x+1, 2 - y+1, 3 - x-1, 4 - y-1
+	beenTo.push([sx,sy]);
+	diffXplus1=Math.abs(sx+1-dx);
+	diffXminus1=Math.abs(sx-1-dx);
+	diffYplus1=Math.abs(sy+1-dy);
+	diffYminus1=Math.abs(sy-1-dy);
+	var path=Math.floor(Math.random()*4)+1;
+	
+
+	if (diffXplus1<diffXminus1) { // plus seems better than minus here, so go for +x(1) or a y 2 or 4
+		if (path==3)
+			path=1;
+	}
+
+	if (diffXminus1<diffXplus1) { // minus seems better than minus here, so go for -x(3) or a y 2 or 4
+		if (path==1)
+			path=3;
+	}
+
+	if (diffYplus1<diffYminus1) { // plus seems better than minus here, so go for +y(2) or a x 1 or 3 
+		if (path==4)
+			path=2;
+	}
+
+	if (diffYminus1<diffYplus1) { // minus seems better than minus here, so go for -y(4) or a x 1 or 3
+		if (path==2)
+			path=4;
+	}
+
+	if (diffXplus1>5 && diffXplus1>diffXminus1)
+		path=3;
+	if (diffXminus1>5 && diffXminus1>diffXplus1)
+		path=1;
+	if (diffYminus1>5 && diffYminus1>diffYplus1)
+		path=2;
+	if (diffYplus1>5 && diffYplus1>diffYminus1)
+		path=4;
+		//alert(path + ", " + hasGem([sx+1,sy]) + ", " + hasGem([sx,sy+1])  + ", " + hasGem([sx-1,sy]) + ", " + hasGem([sx,sy-1]));
+
+	while (((path==1 && hasGem([sx+1,sy])) || (path==2 && hasGem([sx,sy+1])) || (path==3 && hasGem([sx-1,sy])) || (path==4 && hasGem([sx,sy-1])))
+			&& !haveBeenTo(sx,sy,path))
+		{
+			path=Math.floor(Math.random()*4)+1;
+		}
+	var a=false;
+
+	if (sx > 36) {
+		a=findPathBetweenPoints(sx-1,sy,dx,dy);
+		path=5
+	}
+	if (sx < 0) {
+		a=findPathBetweenPoints(sx+1,sy,dx,dy);
+		path=5
+	}
+	if (sy > 36) {
+		a=findPathBetweenPoints(sx,sy-1,dx,dy);
+		path=5
+	}
+	if (sy < 0 ) {
+		a=findPathBetweenPoints(sx,sy+1,dx,dy);
+		path=5
+	}
+	if (sx == dx && sy == dy)
+		return [[sx,sy]]; // we've reached the end, path found return the final node
+	
+	if (path==1)  {
+		a=findPathBetweenPoints(sx+1,sy,dx,dy);
+	}
+	if (path==2) {
+		a=findPathBetweenPoints(sx,sy+1,dx,dy);
+		//(sx,sy+1,dx,dy);
+	}
+	if (path==3) {
+		a=findPathBetweenPoints(sx-1,sy,dx,dy);
+	}
+	if (path==4) {
+		a=findPathBetweenPoints(sx,sy-1,dx,dy);
+	}
+	if (a===false) {
+		return [[sx,sy]]; // issue with duplicates returned here maybe?
+	} else {
+		if (path==5)
+			return a;
+		
+		return a.concat([[sx,sy]]);
+	}
+	
+	return false;
+}
+
+
+var isThisInPath = function (x,y) {
+// Just reference at this point, couldn't
+//	this.pathList = [[4,4],[4,20],[32,20],[32,5],[19,5],[19,32],[32,32]];
+
+		if (new LineSegment(4,4,4,20).isPointOnLine(x,y)) // Start to p1
+			return true;
+		if (new LineSegment(4,20,32,20).isPointOnLine(x,y)) // p1 to p2
+			return true;
+		if (new LineSegment(32,20,32,5).isPointOnLine(x,y)) // p2 to p3
+			return true;
+		if (new LineSegment(32,5,19,5).isPointOnLine(x,y)) // p3 to p4
+			return true;
+		if (new LineSegment(19,5,19,32).isPointOnLine(x,y)) // p4 to p5
+			return true;
+		if (new LineSegment(19,32,32,32).isPointOnLine(x,y)) // p4 to exit
+			return true;
+}
+
+var isThisBlocked = function (id) {
+// Just reference at this point, couldn't
+//	this.pathList = [[4,4],[4,20],[32,20],[32,5],[19,5],[19,32],[32,32]];
+
+y=id.split("y")[1];
+x=id.split("y")[0].split("x")[1];
+
+		
+		if (new LineSegment(0,0,8,5).isPointOnLine(x,y)) // Around entrance
+			return true;
+		if (new LineSegment(4,20,4,20).isPointOnLine(x,y)) // p1
+			return true;
+		if (new LineSegment(32,20,32,20).isPointOnLine(x,y)) // p2
+			return true;
+		if (new LineSegment(32,5,32,5).isPointOnLine(x,y)) // p3
+			return true;
+		if (new LineSegment(19,5,19,5).isPointOnLine(x,y)) // p4
+			return true;
+		if (new LineSegment(19,32,19,32).isPointOnLine(x,y)) // p5
+			return true;
+		if (new LineSegment(32,30,34,34).isPointOnLine(x,y)) // Around exit
+			return true;
+		return hasGem([x,y]);
+}
+
+var Board = function () {
+	var position = "absolute";
+	var left = "50px";
+	var top = "50px";
+	var width = 37;
+	var height = 37;
+	var squareSize = 20;
+	var squareList=null;
+	var monsterList = new Array();
+	
+	this.writeBoard = function (i,n) {
+		var b = document.createElement("div");
+		b.id=n;
+		b.style.position = position;
+		b.style.left = left;
+		b.style.top = top;
+		b.style.background = "grey";
+		b.style.width=width*squareSize+"px";
+		b.style.height=height*squareSize+"px";
+		document.getElementById(i).appendChild(b);
+	}
+	
+	this.getPxAtPoint = function(x,y) {
+			var px = {
+			left: x*(squareSize),
+			top: y*(squareSize)
+			}			
+			return px;
+		}
+
+	
+	this.addMonster = function () {
+		point = this.getPxAtPoint(4,4);
+		var m = document.createElement("span");
+		m.id = "mob1";
+		m.style.position="absolute";
+		m.style.left = point.left+"px";
+		m.style.top = point.top+"px";
+		m.style.background = "red";
+		//m.innerHTML="M";
+		m.style.zIndex="1";
+		m.style.width=squareSize+"px";
+		m.style.height=squareSize+"px";
+		monsterList.push(m);
+		document.getElementById("board").appendChild(m);
+	}
+	
+	this.moveMonster = function (xp,yp,path) {
+		len = monsterList.length;
+		for (x=0;x<len;x++) {
+			point = this.getPxAtPoint(xp,yp);
+			o = monsterList[x];
+			$(o).animate({top: "+=" + (point.top-parseFloat(o.style.top,10)),left: "+=" + (point.left-parseFloat(o.style.left,10)) }, 100,"linear", function() {
+				if (path.length>0) {
+					p = path.pop();
+					board.moveMonster(p[0],p[1],path)
+				}
+			})
+		}
+	}
+
+	this.moveMonsterOnPath = function () {
+		//try {
+		newPathList=findPathBetweenPoints(4,4,4,20);
+		/*} catch(e) {
+			alert('Probably exceeded stack size, reload and try again! Running default path!');
+			this.getPointsInPath();
+		}*/
+		output="";
+		for (x=0;x<beenTo.length;x++)
+			output=output+beenTo[x] + " <BR>";
+		document.getElementById("DUMP").innerHTML=output;
+		
+		//alert(newPathList);
+		this.moveMonster(4,4,newPathList);
+	}
+	
+	this.addSquares = function () {
+// (4,4) => (4,20) => (32,20) => (32,5) => (19,5) => (19,32) => (32,32)
+		for (x=0;x<width;x++)
+		{
+			for (y=0;y<height;y++)
+			{
+				tmpId= "x"+x+"y"+y;
+				
+				var gemSpace = document.createElement("span");
+				gemSpace.id=tmpId;
+				gemSpace.style.position="absolute";
+				gemSpace.style.left=parseFloat(left,10)+x*squareSize+"px";
+				gemSpace.style.top=parseFloat(top,10)+y*squareSize + "px";
+				
+				if (isThisInPath(x,y))
+					gemSpace.style.background=pathColor;
+				else
+					gemSpace.style.background=defaultColor;
+				if (isThisBlocked(tmpId))
+					gemSpace.style.background=noGoColor;
+				gemSpace.style.width=squareSize+"px";
+				gemSpace.style.height=squareSize+"px";
+				gemSpace.style.border="thin solid black";
+				gemSpace.gem=null;
+				gemSpace.onclick=function(s) { addGem(s); };
+				document.getElementById("gameArea").appendChild(gemSpace);
+		//		document.write("<span style='position:absolute;left:" + x*squarePostionVar + "px;top:" + y*squarePostionVar + "px;background:black;width:"+squareSize+"px;height:"+squareSize+"px'></span>");
+			}
+		}
+	
+	
+	}
+	
+	
+	var pathList = [[4,4],[4,20],[32,20],[32,5],[19,5],[19,32],[32,32]];
+	var newPathList = [];
+
+	this.getPointsInPath = function () {
+	localPath = pathList.slice();
+	localPath.reverse();
+
+			firstPoint = localPath.pop();
+			middlePoint = firstPoint;
+		breakCount=0
+		while (localPath.length >0) {
+
+			secondPoint = localPath.pop();
+			
+			newPathList.push(middlePoint);
+
+			while (middlePoint[0] != secondPoint[0] || middlePoint[1] != secondPoint[1]) {
+				breakCount=breakCount++;
+				if (breakCount>40*40) {
+				alert('maze to big');
+				break;
+				}
+				newMiddlePoint = [middlePoint[0],middlePoint[1]];
+
+				if (newMiddlePoint[0]<secondPoint[0]) {
+					if (!hasGem([newMiddlePoint[0]+1,newMiddlePoint[1]])) {
+						newMiddlePoint[0]=newMiddlePoint[0]+1;
+						newPathList.push([newMiddlePoint[0],newMiddlePoint[1]]);
+						middlePoint=newMiddlePoint;
+						continue;
+					}
+				}
+				if (newMiddlePoint[0]>secondPoint[0]) {
+					if (!hasGem([newMiddlePoint[0]-1,newMiddlePoint[1]])) {
+						newMiddlePoint[0]=newMiddlePoint[0]-1;
+						newPathList.push([newMiddlePoint[0],newMiddlePoint[1]]);
+						middlePoint=newMiddlePoint;
+						continue;
+					}
+				}
+				if (newMiddlePoint[1]<secondPoint[1]) {
+					if (!hasGem([newMiddlePoint[0],newMiddlePoint[1]+1])) {						
+						newMiddlePoint[1]=newMiddlePoint[1]+1;
+						newPathList.push([newMiddlePoint[0],newMiddlePoint[1]]);
+						middlePoint=newMiddlePoint;
+						continue;
+					}
+				}
+				if (newMiddlePoint[1]>secondPoint[1]) {
+					if (!hasGem([newMiddlePoint[0],newMiddlePoint[1]-1])) {
+						newMiddlePoint[1]=newMiddlePoint[1]-1;
+						newPathList.push([newMiddlePoint[0],newMiddlePoint[1]]);
+						middlePoint=newMiddlePoint;
+						continue;
+					}
+				}
+				
+				// Making it here means there was an obstical somewhere, custom move path required
+				
+				// 
+				/*
+				while (newMiddlePoint[0] >0 && newMiddlePoint[0] < 36 && newMiddlePoint[1] > 0 && newMiddlePoint[1] < 36 ) {
+				n= newMiddlePoint;
+					if (hasGem([n[0],n[1]+1])) {
+						// check if we can go around it on the other side
+						leftPlus=1;
+						while (hasGem([n[0]-1,n[1]+leftPlus)) {
+							leftPlus=leftPlus+1
+						}
+						if (!hasGem([n[0]-1,n[1]+1])) {
+							newMiddlePoint[0]=newMiddlePoint[0]-1;
+							newPathList.push([newMiddlePoint[0],newMiddlePoint[1]]);
+							newMiddlePoint[1]=newMiddlePoint[1]+1;
+							newPathList.push([newMiddlePoint[0],newMiddlePoint[1]]);
+							middlePoint=newMiddlePoint;
+							break;
+						}
+						if (!hasGem([n[0]+1,n[1]+1])) {
+							newMiddlePoint[0]=newMiddlePoint[0]+1;
+							newPathList.push([newMiddlePoint[0],newMiddlePoint[1]]);
+							newMiddlePoint[1]=newMiddlePoint[1]+1;
+							newPathList.push([newMiddlePoint[0],newMiddlePoint[1]]);
+							middlePoint=newMiddlePoint;
+							break;
+						}
+					}
+				
+				}
+*/
+				
+				
+			}
+		}
+		newPathList.reverse();
+	}
+
+	this.findPath = function () {
+		var startingPoint = [4,4];
+		var pathList = [[4,20],[32,20],[32,5],[19,5],[19,32],[32,32]];
+		
+	
+	}
+	
+	
+}
+
+function hasGem(p) {
+	try {
+	if (document.getElementById("x"+p[0]+"y"+p[1]).gem != null) {
+		return true;
+	} else 
+		return false;
+	} catch(e) {
+		return false;
+	}
+}
+
+function Square() {
+	this.size = 10;
+	this.blocked = false;
+	this.gem = null;
+	this.monster = false;
+	this.pixels = new Array(10);
+	for (x=0;x<this.pixels.length;x++)
+		this.pixels[x]=new Array(10);
+}
+
+/*
+var gemList = new Array();
+var hasteGems = new Array();
+var gradeChipped = 80;
+var gradeFlawed = 20;
+var gradeRegular = 0;
+var gradeNormal = 0;
+var gradeFlawless = 0;
+var gradePerfect = 0;
+
+if (!Array.isArray(board.boardList))
+	board.boardList= []
+board.boardList.push(new Square())
+board.writeBoard("x","n");
+
+*/
+function getGrade() {
+	return 1; // default to chipped right now
+}
+
+function getGemType(t) {
+
+	var gem = new Object();
+	gem.gType=t;
+	gem.grade=getGrade();
+	gem.AOERange=0;
+	gem.providesAura="false";
+	gem.armorReduced=0;
+	gem.range=200;
+	
+	switch(t) {
+		case 1: // Base Haste Gem
+			gem.providesAura="true";
+			gem.damage=1;
+			gem.speed=0.2;
+			gem.range=200;
+			gem.background="purple";
+			break;
+		case 2: // Base Armor reduction Gem
+			gem.armorReduced=-1;
+			gem.damage=3;
+			gem.speed=0.4;
+			gem.range=200;
+			gem.background="orange";
+		case 3: // Base AOE gem
+			gem.AOERange=100;
+			gem.damage=2;
+			gem.speed=0.5;
+			gem.range=200;
+			gem.background="red";
+			break;
+		case 4: // Base Crit Gem
+			gem.critChance=0.2;
+			gem.critDamageMultiplier=1.5;
+			gem.damage=4;
+			gem.speed=0.3;
+			gem.range=200;
+			gem.background="brown";
+			break;
+		case 5: // Base slow gem
+			gem.slowRate=0.1;
+			gem.damage=3;
+			gem.speed=0.3;
+			gem.range=200;
+			gem.background="blue"
+			break;
+		case 6: // Base fast gem
+			gem.damage=2;
+			gem.speed=0.1;
+			gem.range=200;
+			gem.background="pink";
+			break;
+		case 7: // Base DOT/poison gem
+			gem.DOT=1;
+			gem.DOTTime=5;
+			gem.damage=1;
+			gem.speed=0.5;
+			gem.range=200;
+			gem.background="green";
+			break;
+		default:
+			break;
+	}
+	return gem;
+}
+
+
+function getGem()
+{
+	var gem = new Object();
+	gem.type=Math.floor((Math.random()*7)+1);
+	gem.gemObject = getGemType(gem.type);
+
+return gem;
+}
+
+function addGem(s)
+{
+	if (s.target.gem == undefined && !isThisBlocked(s.target.id)) {
+		var g = getGem();
+		s.target.gem = g;
+		s.target.style.background = g.gemObject.background;
+	}
+document.getElementById("INFO").innerHTML=s.target.id;
+}
+
+
+function createMonster() {
+
+	
+
+}
+
+var board = null;
+
+$(document).ready(function () {
+board = new Board();
+board.writeBoard("gameArea","board");
+board.addSquares();
+board.addMonster();
+
+//setTimeout(function() { board.moveMonsterOnPath() },12000);
+//setTimeout(function() { document.getElementById("INFO").innerHTML = 
+//board.moveMonster();
+//board.startGameLoop();
+})
+
+
+
+
+
+
+
+
+</script>
+<span id="INFO"></span><input type="button" onclick="board.moveMonsterOnPath()" value="Start">
+<div id="DUMP" style="position:absolute;left:850px;top:20px">adsf</div>
+</body>
+</html>
