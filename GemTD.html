@@ -200,8 +200,13 @@ function findPathBetweenPoints(sx,sy,dx,dy) {
 	logT("diffXA:" + diffXAReal + " , " + diffYAReal + " , " + diffXBReal + " , " + diffYBReal + " : " + diffx + " , " + diffy)
 	if (	(diffXA==1 && diffYA==0 && diffy<2) || 
 			(diffXA==0 && diffYA==1 && diffx<2) // 0 1 0
-		) {
-		var toReturn = [[sx,sy],[sx+diffXAReal,sy+diffYAReal],[newdXA,newdYA]];
+		)
+	{
+		var toReturn;
+		if (diffy==3)
+			var toReturn = [[sx,sy],[sx+diffXAReal,sy+diffYAReal],[sx+diffXAReal,sy+diffYAReal+diffYAReal],[newdXA,newdYA]];
+		else
+			var toReturn = [[sx,sy],[sx+diffXAReal,sy+diffYAReal],[newdXA,newdYA]];
 		logT("Returning A1: " + toReturn  );
 		return toReturn;
 	}
@@ -209,7 +214,14 @@ function findPathBetweenPoints(sx,sy,dx,dy) {
 	if (	(diffXB==1 && diffYB==0 && diffy<2) || 
 			(diffXB==0 && diffYB==1 && diffx<2)  
 		) {
-		var toReturn = [[newsXB,newsYB],[newdXB,newdYB]];
+		var toReturn;
+		if (diffy==3)
+			var toReturn = [[sx,sy],[sx+diffXBReal,sy+diffYBReal],[sx+diffXBReal,sy+diffYBReal+diffYBReal],[newdXB,newdYB]];
+			//var toReturn = [[sx,sy],[sx+diffXAReal,sy+diffYAReal],[sx+diffXAReal,sy+diffYAReal+diffYAReal],[newdXA,newdYA]];
+		else
+			var toReturn = [[sx,sy],[sx+diffXBReal,sy+diffYBReal],[newdXB,newdYB]];
+			
+		//var toReturn = [[sx,sy],[[newsXB,newsYB],[newdXB,newdYB]];
 		logT("Returning B1: " + toReturn);
 		return toReturn;
 	}
@@ -365,7 +377,7 @@ var Board = function () {
 
 	this.moveMonsterOnPath = function () {
 		//try {
-		newPathList=findPathBetweenPoints(4,4,2,32);
+		newPathList=findPathBetweenPoints(20,4,2,32);
 		newPathList=removePathDuplicates(newPathList);
 		newPathList.reverse();
 
