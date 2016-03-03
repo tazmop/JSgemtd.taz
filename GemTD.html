@@ -12,7 +12,6 @@ var noGoColor="black";
 var pathColor="grey";
 var defaultColor="white";
 
-var testGit="hi";
 
 var Monster = function (left,top) {
 	var position = "absolute";
@@ -47,47 +46,8 @@ return d;
 
 //[0,0],[0,1],[0,2],[0,3],[1,3],[2,3],[3,3]
 beenTo=[];
-function haveBeenTo(dx,dy,path) {
-//alert(dx + " -- " + dy + " -- " + path + " -- " + beenTo);
-	for (x=0;x<beenTo.length;x++) {
-		if ((beenTo[x][0]==dx+1 && beenTo[x][1]==dy && path==1) ||
-			(beenTo[x][0]==dx && beenTo[x][1]==dy+1 && path==2) ||
-			(beenTo[x][0]==dx-1 && beenTo[x][1]==dy && path==3) ||
-			(beenTo[x][0]==dx && beenTo[x][1]==dy-1 && path==4)) {
-				//alert('wut');
-	//			alert('TRUE: ' + dx + " -- " + dy + " -- " + path + " -- " + beenTo);
 
-				return true;
-				
-			}
-	}
-	return false;
-}
 
-function removePathDuplicates(iArray) { // input Array
-	var newArray = [];
-	var removed= [];
-	var remove = false;
-	for (var x=0;x<iArray.length;x++) {
-		remove = true;
-		for (var y=0;y<iArray.length;y++) {
-			if (iArray[x][0]==iArray[y][0] && iArray[x][1] == iArray[y][1] && x!=y) {
-				remove = true;
-				
-				logT(x+ "," + y + " : " + iArray[x][0] + " == " + iArray[y][0] + " AND " + iArray[x][1] + " == " + iArray[y][1] + " REMOVE? " + remove);
-				break;
-			} else
-				remove = false;
-		}
-		//if (remove == false) {
-			logT(iArray[x]);
-			newArray.push(iArray[x]);
-	//	} else removed.push(iArray[x]);
-	}
-	
-	return newArray;
-
-}
 
 function logT(l) {
 	var e = document.createElement("span");
@@ -114,6 +74,16 @@ function findPathBetweenPoints(sx,sy,dx,dy) {
 	logT(sx + "," + sy + "," + dx + "," + dy);
 	xDir = "SAME";
 	yDir = "SAME";
+	
+	if (sx<dx)
+		dirX=1;
+	else
+		dirX=-1;
+	if (sy<dy)
+		dirY=1;
+	else
+		dirY=-1;
+		
 	if (dx - sx > 0 )  // Then were going 'right'
 		xDir = "RIGHT";
 	if (sx - dx > 0 )
@@ -181,90 +151,22 @@ function findPathBetweenPoints(sx,sy,dx,dy) {
 		newdYB=dy;
 	}
 	
-	logT(xDir + " - " + yDir + " == " + newsXA + 
+	logT(sx+","+sy+":"+dx+","+dy+ "::" + xDir + " - " + yDir + " == " + newsXA + 
 		" - " + newsYA + " - " + newdXA + " - " + newdYA + " : " + newsXB + " - " + newsYB + " - " + newdXB + " - " + newdYB + " : ");
 
-	var diffXAReal=newdXA-newsXA;
-	var diffXBReal=newdXB-newsXB;
-	var diffYAReal=newdYA-newsYA;
-	var diffYBReal=newdYB-newsYB;
-	
-	var diffXA=Math.abs(diffXAReal);
-	var diffYA=Math.abs(diffYAReal);
-	var diffXB=Math.abs(diffXBReal);
-	var diffYB=Math.abs(diffYBReal);
-	
-	var diffx=Math.abs(dx-sx);
-	var diffy=Math.abs(dy-sy);
-	
-	logT("diffXA:" + diffXAReal + " , " + diffYAReal + " , " + diffXBReal + " , " + diffYBReal + " : " + diffx + " , " + diffy)
-	if (	(diffXA==1 && diffYA==0 && diffy<2) || 
-			(diffXA==0 && diffYA==1 && diffx<2) // 0 1 0
-		)
+	if ( (sy == dy-1 || sy == dy+1) && (sx == dx) ||
+		 (sx == dx-1 || sx == dx+1) && (sy == dy)
+		)  // if there is only one space away then return a movement directly there
 	{
-		var toReturn;
-		if (diffy==3)
-			var toReturn = [[sx,sy],[sx+diffXAReal,sy+diffYAReal],[sx+diffXAReal,sy+diffYAReal+diffYAReal],[newdXA,newdYA]];
-		else
-			var toReturn = [[sx,sy],[sx+diffXAReal,sy+diffYAReal],[newdXA,newdYA]];
-		logT("Returning A1: " + toReturn  );
+		var toReturn = [[sx,sy],[dx,dy]];
+		logT(sx+","+sy+":"+dx+","+dy+ "::B::Returning: " + toReturn );
 		return toReturn;
-	}
-
-	if (	(diffXB==1 && diffYB==0 && diffy<2) || 
-			(diffXB==0 && diffYB==1 && diffx<2)  
-		) {
-		var toReturn;
-		if (diffy==3)
-			var toReturn = [[sx,sy],[sx+diffXBReal,sy+diffYBReal],[sx+diffXBReal,sy+diffYBReal+diffYBReal],[newdXB,newdYB]];
-			//var toReturn = [[sx,sy],[sx+diffXAReal,sy+diffYAReal],[sx+diffXAReal,sy+diffYAReal+diffYAReal],[newdXA,newdYA]];
-		else
-			var toReturn = [[sx,sy],[sx+diffXBReal,sy+diffYBReal],[newdXB,newdYB]];
-			
-		//var toReturn = [[sx,sy],[[newsXB,newsYB],[newdXB,newdYB]];
-		logT("Returning B1: " + toReturn);
-		return toReturn;
-	}
-	
-	if ( (diffXA==1 && diffYA==1 && (diffx<2 || diffy<2)) ) // Both one away, causes infinite loop if I don't do this!
-	{
-		var path = Math.round(Math.random()*(2-1)+1); // Randomly go one way or the other
-		if (path==1) {
-			var toReturn = [[sx,sy],[sx,sy+diffYAReal],[sx+diffXAReal,sy+diffYAReal]]; //,[newdXA,newsYA],[newdXA,newdYA]];
-			logT("ReturningA2.1: " + toReturn);
-			return toReturn; // Keep Y the same then keep X the same
-		} else {
-			var toReturn = [[sx,sy],[sx+diffXAReal,sy],[sx+diffXAReal,sy+diffYAReal]]; //,[newsXA,newdYA],[newdXA,newdYA]]
-			logT("ReturningA2.2: " + toReturn);
-			return toReturn; // Keep X the same then keep Y the same
-		}
-	}
-	
-	if ( (diffXB==1 && diffYB==1 && (diffx<2 || diffy<2)) ) // Both one away, causes infinite loop if I don't do this!
-	{
-		var path = Math.round(Math.random()*(2-1)+1); // Randomly go one way or the other
-		if (path==1) {
-			var toReturn = [[sx,sy],[sx,sy+diffYBReal],[sx+diffXBReal,sy+diffYBReal]]; //,[newdXB,newsYB],[newdXB,newdYB]];
-			logT("ReturningB2.1: " + toReturn);
-
-			return toReturn; // Keep Y the same then keep X the same
-		} else {
-			var toReturn = [[sx,sy],[sx+diffXBReal,sy],[sx+diffXBReal,sy+diffYBReal]]; //,[newsXB,newdYB],[newdXB,newdYB]];
-			logT("ReturningB2.2: " + toReturn );
-			return toReturn; // Keep X the same then keep Y the same
-		}
-	
-	}
-	
-	if (xDir == "SAME" && yDir == "SAME") {
-		logT("MADE SAME");
-		return [];
 	}
 	
 	var aOUT=findPathBetweenPoints(newsXB,newsYB,newdXB,newdYB);
 	var bOUT=findPathBetweenPoints(newsXA,newsYA,newdXA,newdYA);
 
-	logT("A:" +aOUT + " B:" + bOUT);
+	logT(sx+","+sy+":"+dx+","+dy+ "::A:" +aOUT + " B:" + bOUT);
 	aOUT.pop(); // Since our middle number should be in both arrays, drop the last record in the first array so we don't double count
 	return aOUT.concat(bOUT);
 
@@ -376,25 +278,20 @@ var Board = function () {
 	}
 
 	this.moveMonsterOnPath = function () {
-		//try {
-		newPathList=findPathBetweenPoints(20,4,2,32);
-		newPathList=removePathDuplicates(newPathList);
+
+		newPathList=findPathBetweenPoints(4,4,2,31);
 		newPathList.reverse();
 
-		/*} catch(e) {
-			alert('Probably exceeded stack size, reload and try again! Running default path!');
-			this.getPointsInPath();
-		}*/
 		output="newPathList:<BR>";
 		for (x=0;x<newPathList.length;x++)
 			output=output+newPathList[x] + " <BR>";
-		//document.getElementById("DUMP").innerHTML=output;
 		output=output + "<BR>BEENTO:<BR>";
 		for (x=0;x<beenTo.length;x++)
 			output=output+beenTo[x] + " <BR>";
 		document.getElementById("DUMP").innerHTML=output;		
-		//alert(newPathList);
 		this.moveMonster(4,4,newPathList);
+
+
 	}
 	
 	this.addSquares = function () {
