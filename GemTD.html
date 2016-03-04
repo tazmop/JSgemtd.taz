@@ -66,6 +66,7 @@ function getMiddleNumber(x,y) {
 		return Math.round(((y-x)/2)+x);
 }
 
+var stack = [];
 function findLowestPath(sx,sy,dx,dy,c) {
 		// 0,0 ==> 36,36 all cells
 		// 4,4 ==> 4,20 first path
@@ -75,25 +76,40 @@ function findLowestPath(sx,sy,dx,dy,c) {
 // 4,19,1
 // 5,21,1
 // 5,19,1
-
-	if (sx>36 || sy>36 || sx<0 || sy<0)
-		return []
-
-	var stack = [];
 	
-	if (!hasGem([sx+1,sy]))
-		var s1=findLowestPath(sx+1,sy,dx,dy,c+1);
-	if (!hasGem([sx-1,sy]))
-		var s2=findLowestPath(sx-1,sy,dx,dy,c+1);
-	if (!hasGem([sx,sy+1]))
-		var s3=findLowestPath(sx,sy+1,dx,dy,c+1);
-	if (!hasGem([sx,sy-1]))
-		var s4=findLowestPath(sx,sy-1,dx,dy,c+1);
+	
+	if (sx>36 || sy>36 || sx<0 || sy<0)
+		return false;
+	if (sx==dx && sy==dy) {
+		stack.push([sx,sy,c]);
+		return true;
+	}
+	if (hasGem([sx,sy]))
+		return false;
+	for (x=0;x<stack.length;x++)
+		if (stack[x][0]==sx && stack[x][1]==sy)
+			return false;
 	
 	stack.push([sx,sy,c]);
-	stack.concat(s1.concat(s2.concat(s3.concat(s4))));
+	
+	//	path=Math.floor(Math.random()*4);
+	
+	if (findLowestPath(sx+1,sy,dx,dy,c+1)==true)
+		return true;
+	if (findLowestPath(sx,sy+1,dx,dy,c+1)==true)
+		return true;
+	if (findLowestPath(sx-1,sy,dx,dy,c+1)==true)
+		return true;
+	if (findLowestPath(sx,sy-1,dx,dy,c+1)==true)
+		return true;
 
-	return stack;
+	for (x=0;x<stack.length;x++)
+		if (stack[x][0]==sx && stack[x][1]==sy)
+			break;
+			
+	stack=stack.splice(x,1);
+	
+	return false;
 
 	/*
 	for (var x=0;x<36;x++) {
@@ -272,9 +288,10 @@ var Board = function () {
 	}
 
 	this.moveMonsterOnPath = function () {
-
+		stack=[];
 		//newPathList=findPathBetweenPoints(4,5,4,20);
 		newPathList=findLowestPath(4,4,4,20,0);
+		newPathList=stack;
 /*
 		newPathList.pop();
 		newPathList=newPathList.concat(findPathBetweenPoints(4,20,32,20));
