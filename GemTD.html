@@ -135,7 +135,119 @@ function getCounts(c) {
 	}*/
 		return p;
 }
-function findLowestPath(sx,sy,dx,dy,count,lastSx,lastSy) {
+
+function fp(sx,sy,c,dx,dy) {
+
+
+	if (sx==dx && sy==dy)
+		return true; // found the end
+	if (sx>36||sx<0||sy>36||sy<0)
+		return false;
+		var s;
+	if (s=hasElement(sx,sy)) {
+		// have been here before
+		if (s[2]>c) // count is higher
+			removeElement(sx,sy);
+		else
+			return false;
+	}
+	if (new LineSegment(0,0,8,5).isPointOnLine(sx,sy) || hasGem([sx,sy]) )
+		return false;
+
+		
+	if (fp(sx-1,sy,c+1,dx,dy)==true) return true; // check the previous one but up
+	if (fp(sx+1,sy,c+1,dx,dy)==true) return true;
+	if (fp(sx,sy-1,c+1,dx,dy)==true) return true;
+	if (fp(sx-1,sy,c+1,dx,dy)==true) return true;
+	
+	last=stack.pop();
+	
+	if (last[0] == sx-1) {
+		stack.push(last);
+		if (fp(sx-1,sy+1,c,dx,dy)==true) return true; // check the previous one but up
+		if (fp(sx-1-1,sy,c,dx,dy)==true) return true;
+		if (fp(sx-1,sy-1,c,dx,dy)==true) return true;
+	}
+	if (last[0] == sx+1) {
+		stack.push(last);
+		if (fp(sx+1,sy+1,c,dx,dy)==true) return true; // check the previous one but up
+		if (fp(sx+1,sy-1,c,dx,dy)==true) return true;
+		if (fp(sx+1+1,sy,c,dx,dy)==true) return true;
+	}
+	if (last[1] == sy-1) {
+		stack.push(last);
+		if (fp(sx-1,sy-1,c,dx,dy)==true) return true; // check the previous one but up
+		if (fp(sx,sy-1-1,c,dx,dy)==true) return true;
+		if (fp(sx+1,sy-1,c,dx,dy)==true) return true;
+	}
+	if (last[1] == sy+1) {
+		stack.push(last);
+		if (fp(sx-1,sy+1,c,dx,dy)==true) return true; // check the previous one but up
+		if (fp(sx,sy+1+1,c,dx,dy)==true) return true;
+		if (fp(sx+1,sy+1,c,dx,dy)==true) return true;
+	}
+	
+	stack.push([sx,sy,c]);
+	
+	
+}
+
+var overflowCounter=0;
+function finalLowestPath(sx,sy,c,dx,dy) {
+	overflowCounter++;
+	logT(sx + ","+ sy + " - " + overflowCounter);
+	if (overflowCounter>8000) {
+		return false;
+	}
+	if (sx==dx && sy==dy)
+		return true;
+		
+	var s=hasElement(sx,sy);
+	if (s!=false) {
+		if (s[2]>c) {
+			logT("Removing:" + s +  "--" +overflowCounter);
+			removeElement(sx,sy);
+		}
+			return false;
+	}
+	if (new LineSegment(0,0,8,5).isPointOnLine(sx,sy) || hasGem([sx,sy]) )
+		return false;
+	
+	stack.push([sx,sy,c+1]);
+//	document.getElementById("x"+sx+"y"+sy).appendChild(document.createTextNode(c));
+
+	if (sx !=0)
+		if (finalLowestPath(sx-1,sy,c+1,dx,dy)) {
+			stack.push([sx,sy,c+1]);
+			document.getElementById("x"+sx+"y"+sy).appendChild(document.createTextNode(c));
+			return true;
+		}
+	
+	if (sx !=36)
+		if (finalLowestPath(sx+1,sy,c+1,dx,dy)) {
+			stack.push([sx,sy,c+1]);
+			document.getElementById("x"+sx+"y"+sy).appendChild(document.createTextNode(c));
+			return true;
+		}
+	
+	if (sy != 0)
+		if (finalLowestPath(sx,sy-1,c+1,dx,dy)) {
+			stack.push([sx,sy,c+1]);
+			document.getElementById("x"+sx+"y"+sy).appendChild(document.createTextNode(c));
+			return true;
+		}
+	
+	if (sy !=36)
+		if (finalLowestPath(sx,sy+1,c+1,dx,dy)) {
+			stack.push([sx,sy,c+1]);
+			document.getElementById("x"+sx+"y"+sy).appendChild(document.createTextNode(c));
+			return true;
+		}
+		
+	return false;
+}
+
+function findLowestPath(startX,startY,sx,sy,dx,dy,count,lastSx,lastSy) {
 		// 0,0 ==> 36,36 all cells
 		// 4,4 ==> 4,20 first path
 
@@ -262,25 +374,30 @@ function findLowestPath(sx,sy,dx,dy,count,lastSx,lastSy) {
 		if (findLowestPath(sx,sy-1,dx,dy,count+1,sx,sy)==true) return true;
 */
 
-	var s1=hasElement(lastSx+1,lastSy);
-	var s2=hasElement(lastSx,lastSy+1);
-	var s3=hasElement(lastSx-1,lastSy);
-	var s4=hasElement(lastSx,lastSy-1);
+	var s1=hasElement(startX+1,startY);
+	var s2=hasElement(startX,startY+1);
+	var s3=hasElement(startX-1,startY);
+	var s4=hasElement(startX,startY-1);
 	var p1,p2,p3,p4;
 	if (!s1)
-		var p1=findLowestPath(lastSx+1,lastSy,dx,dy,count,lastSx,lastSy);
+		var p1=findLowestPath(startX,startY,lastSx+1,lastSy,dx,dy,1,lastSx,lastSy);
 	if (!s2)
-		var p2=findLowestPath(lastSx,lastSy+1,dx,dy,count,lastSx,lastSy);
+		var p2=findLowestPath(startX,startY,lastSx,lastSy+1,dx,dy,1,lastSx,lastSy);
 	if (!s3)
-		var p3=findLowestPath(lastSx-1,lastSy,dx,dy,count,lastSx,lastSy);
+		var p3=findLowestPath(startX,startY,lastSx-1,lastSy,dx,dy,1,lastSx,lastSy);
 	if (!s4)
-		var p4=findLowestPath(lastSx,lastSy-1,dx,dy,count,lastSx,lastSy);
-
-	//if (s1 && s2 && s3 && s4)
-		var p1=findLowestPath(sx+1,sy,dx,dy,count+1,sx,sy);
-		var p2=findLowestPath(sx,sy+1,dx,dy,count+1,sx,sy);
-		var p3=findLowestPath(sx-1,sy,dx,dy,count+1,sx,sy);
-		var p4=findLowestPath(sx,sy-1,dx,dy,count+1,sx,sy);
+		var p4=findLowestPath(startX,startY,lastSx,lastSy-1,dx,dy,1,lastSx,lastSy);
+	
+	if (s1 && s2 && s3 && s4) // increment the startX by whatever hasn't been explored
+	{
+		startX=startX+1;
+		if (findLowestPath(startX,startY,lastSx+1,lastSy,dx,dy,1,lastSx,lastSy)==true)
+			return true;
+		if (find)
+		return false;
+	}
+	
+		
 	if (p1==true || p2 == true || p3 == true || p4 == true) return true;
 	
 	return false;
@@ -519,12 +636,13 @@ var Board = function () {
 
 	this.moveMonsterOnPath = function () {
 		stack=[];
+		stack.push([4,6,1]); // push first row?
 		//newPathList=findPathBetweenPoints(4,5,4,20);
 		for (x=0;x<36;x++) 
 			for (y=0;y<36;y++)
 				document.getElementById("x"+x+"y"+y).innerHTML="";
 
-		newPathList=findLowestPath(4,6,4,20,0,4,6);
+		newPathList=fp(4,6,0,4,20);
 		logT(newPathList)
 		
 		newPathList=stack;
