@@ -66,6 +66,7 @@ function getMiddleNumber(x,y) {
 		return Math.round(((y-x)/2)+x);
 }
 
+var maze = [];
 var stack = [];
 
 function hasElement(ix,iy) {
@@ -136,9 +137,42 @@ function getCounts(c) {
 		return p;
 }
 
-function fp(sx,sy,c,dx,dy) {
 
 
+var xm=0,xp=0,ym=0,yp=0;
+
+
+function fp(sx,sy,rx,ry,c,dx,dy,p) {
+
+	var closedSet = {};
+
+	var openSet = maze;
+
+	var cameFrom = maze;
+
+	var gScore = maze;
+
+	gScore[sx][sy] = 0;
+
+	var fscore = maze;
+
+	fscore[sx][sy] = 1;
+
+	while (openSet != null) {
+		var current = openSet;
+		if (current[0]==dx&&current[1]==dy) {
+			logT("Gotit")
+			return cameFrom;
+		}
+
+
+		logT(openSet)
+
+		break;
+
+	}
+
+/*
 	if (sx==dx && sy==dy)
 		return true; // found the end
 	if (sx>36||sx<0||sy>36||sy<0)
@@ -151,385 +185,96 @@ function fp(sx,sy,c,dx,dy) {
 		else
 			return false;
 	}
+	if (c>200) {
+		logT("Ouch");
+	}
 	if (new LineSegment(0,0,8,5).isPointOnLine(sx,sy) || hasGem([sx,sy]) )
 		return false;
-
-		
-	if (fp(sx-1,sy,c+1,dx,dy)==true) return true; // check the previous one but up
-	if (fp(sx+1,sy,c+1,dx,dy)==true) return true;
-	if (fp(sx,sy-1,c+1,dx,dy)==true) return true;
-	if (fp(sx-1,sy,c+1,dx,dy)==true) return true;
-	
-	last=stack.pop();
-	
-	if (last[0] == sx-1) {
-		stack.push(last);
-		if (fp(sx-1,sy+1,c,dx,dy)==true) return true; // check the previous one but up
-		if (fp(sx-1-1,sy,c,dx,dy)==true) return true;
-		if (fp(sx-1,sy-1,c,dx,dy)==true) return true;
-	}
-	if (last[0] == sx+1) {
-		stack.push(last);
-		if (fp(sx+1,sy+1,c,dx,dy)==true) return true; // check the previous one but up
-		if (fp(sx+1,sy-1,c,dx,dy)==true) return true;
-		if (fp(sx+1+1,sy,c,dx,dy)==true) return true;
-	}
-	if (last[1] == sy-1) {
-		stack.push(last);
-		if (fp(sx-1,sy-1,c,dx,dy)==true) return true; // check the previous one but up
-		if (fp(sx,sy-1-1,c,dx,dy)==true) return true;
-		if (fp(sx+1,sy-1,c,dx,dy)==true) return true;
-	}
-	if (last[1] == sy+1) {
-		stack.push(last);
-		if (fp(sx-1,sy+1,c,dx,dy)==true) return true; // check the previous one but up
-		if (fp(sx,sy+1+1,c,dx,dy)==true) return true;
-		if (fp(sx+1,sy+1,c,dx,dy)==true) return true;
-	}
-	
+	//c++;
 	stack.push([sx,sy,c]);
-	
-	
-}
+	document.getElementById("x"+sx+"y"+sy).innerHTML="";
+	document.getElementById("x"+sx+"y"+sy).appendChild(document.createTextNode(c));
 
-var overflowCounter=0;
-function finalLowestPath(sx,sy,c,dx,dy) {
-	overflowCounter++;
-	logT(sx + ","+ sy + " - " + overflowCounter);
-	if (overflowCounter>8000) {
-		return false;
-	}
-	if (sx==dx && sy==dy)
-		return true;
-		
-	var s=hasElement(sx,sy);
-	if (s!=false) {
-		if (s[2]>c) {
-			logT("Removing:" + s +  "--" +overflowCounter);
-			removeElement(sx,sy);
-		}
-			return false;
-	}
-	if (new LineSegment(0,0,8,5).isPointOnLine(sx,sy) || hasGem([sx,sy]) )
-		return false;
-	
-	stack.push([sx,sy,c+1]);
-//	document.getElementById("x"+sx+"y"+sy).appendChild(document.createTextNode(c));
-
-	if (sx !=0)
-		if (finalLowestPath(sx-1,sy,c+1,dx,dy)) {
-			stack.push([sx,sy,c+1]);
-			document.getElementById("x"+sx+"y"+sy).appendChild(document.createTextNode(c));
+	if (p==4) {
+		xm++;
+		if (fp(rx-xm+xp,ry,rx,ry,xm,dx,dy,1)==true)
 			return true;
-		}
-	
-	if (sx !=36)
-		if (finalLowestPath(sx+1,sy,c+1,dx,dy)) {
-			stack.push([sx,sy,c+1]);
-			document.getElementById("x"+sx+"y"+sy).appendChild(document.createTextNode(c));
+		xp++;
+		if (fp(rx+xp,ry,rx,ry,xp,dx,dy,2)==true)
 			return true;
-		}
-	
-	if (sy != 0)
-		if (finalLowestPath(sx,sy-1,c+1,dx,dy)) {
-			stack.push([sx,sy,c+1]);
-			document.getElementById("x"+sx+"y"+sy).appendChild(document.createTextNode(c));
+		ym++;
+		if (fp(rx,ry-ym,rx,ry,ym,dx,dy,3)==true)
 			return true;
-		}
-	
-	if (sy !=36)
-		if (finalLowestPath(sx,sy+1,c+1,dx,dy)) {
-			stack.push([sx,sy,c+1]);
-			document.getElementById("x"+sx+"y"+sy).appendChild(document.createTextNode(c));
+		yp++;
+		if (fp(rx,ry+yp,rx,ry,yp,dx,dy,4)==true)
 			return true;
-		}
-		
-	return false;
-}
-
-function findLowestPath(startX,startY,sx,sy,dx,dy,count,lastSx,lastSy) {
-		// 0,0 ==> 36,36 all cells
-		// 4,4 ==> 4,20 first path
-
-		// 4,20,0
-		// 4,21,1
-		// 4,19,1
-		// 5,21,1
-		// 5,19,1
-			
-		//	for (x=0;x<stack.length;x++)
-		//		if (stack[x][0]==sx && stack[x][1]==sy)
-		//			return false;
-
-		/*
-			stack.push([sx,sy,0]);
-				stack.push([sx+1,sy,1]);
-						stack.push([sx+1+1,sy,2);
-							stack.push([sx+1+1+1,sy,3);
-							stack.push([sx+1+1,sy+1,3);
-							stack.push([sx+1+1-1,sy,3); // throwaway
-							stack.push([sx+1+1,sy-1,3);
-						stack.push([sx+1,sy+1,2]);
-						stack.push([sx+1-1,sy,2]); // throwaway
-						stack.push([sx+1,sy-1,2]);
-				stack.push([sx,sy+1,1]);
-				stack.push([sx-1,sy,1]);
-				stack.push([sx,sy-1,1]);
-		*/
-	
-	
-	if (sx==dx && sy==dy) {
-		stack.push([sx,sy,count]);
-		return true;
-	}
-	if (sx>36 || sx<0 || sy>36 || sy<0)
-		return false;
-	if (new LineSegment(0,0,8,5).isPointOnLine(sx,sy)) // Around entrance
-	{
-		stack.push([sx,sy,0]);
-		return false;
-	}
-
-	if (hasGem([sx,sy])) {
-		stack.push([sx,sy,0]);
-		return false;
 	}
 	
-	if (count>36*36) // you broken babye
-	{
-		logT("You broken baby:" + count)
-	//	return false;
-	//	return false; 
-	}
-	
-
-	/*
-	stack.push([4,4,0]);     //0 X+ , Y+, X-, Y-
-		stack.push([4+1,4,1]); //1 (5,4)
-			stack.push([4+1+1,4,2]);  //2 (6,4)			
-				stack.push([4+1+1+1,4,3]);  //3 (7,4)
-				stack.push([4+1+1,4+1,3]);  //3 (6,5)
-				stack.push([4+1+1-1,4,3]);  //3 (5,4)
-					stack.push([4+1+1-1+1,4,4]);  //4 (6,4) // would not be set since it is found
-					stack.push([4+1+1-1,4+1,4]);  //4 (5,5) // would not be set since it is found
-					stack.push([4+1+1-1-1,4,4]);  //4 (4,4) // would not be set since it is found
-					stack.push([4+1+1-1,4-1,4]);  //4 (5,3) // would not be set since it is found
-				stack.push([4+1+1,4-1,3]);  //3 (6,3)
-			stack.push([4+1,4+1,2]);  // sx +1 sy +1
-				stack.push([4+1+1,4+1,3]);  //3 (6,5)
-				stack.push([4+1,4+1+1,3]);  //3 (5,6)
-				stack.push([4+1-1,4+1,3]);  //3 (4,5)
-				stack.push([4+1,4+1-1,3]);  //3 (5,4)
-
-			stack.push([4+1-1,4,2]);  // sx +1 -1
-				stack.push([4+1-1+1,4,3]);  //3 (5,4)
-				stack.push([4+1-1,4+1,3]);  //3 (4,5)
-				stack.push([4+1-1-1,4,3]);  //3 (3,4)
-				stack.push([4+1-1,4-1,3]);  //3 (4,3)
-			stack.push([4+1,4-1,2]);  //3 sx +1 sy -1
-		stack.push([4,4+1,1]);
-
-		stack.push([4-1,4]);
-		stack.push([4,4-1]);
-	*/
-		
-	//levelOut=level;
-	//uppers=getCounts(c);
-	var s=hasElement(sx,sy);
-
-	if (s!=false)
-		if (s[2]>count)
-			removeElement(sx,sy);
-		else
-			return false;
-	
-	stack.push([sx,sy,count]);
-	document.getElementById("x"+sx+"y"+sy).appendChild(document.createTextNode(count));
-	
-	path=0;
-	//Math.floor(Math.random()*4);
-	
-/*
-	if (!hasElement(lastSx+1,lastSy) && count>0 )
-		findLowestPath(lastSx+1,lastSy,dx,dy,count,lastSx,lastSy);
-	if (!hasElement(lastSx,lastSy+1) && count>0 )
-		findLowestPath(lastSx,lastSy+1,dx,dy,count,lastSx,lastSy);
-	if (!hasElement(lastSx-1,lastSy) && count>0 )
-		findLowestPath(lastSx-1,lastSy,dx,dy,count,lastSx,lastSy);
-	if (!hasElement(lastSx,lastSy-1) && count>0 )
-		findLowestPath(lastSx,lastSy-1,dx,dy,count,lastSx,lastSy);
-*/
-
-	//if (!hasElement(sx+1,sy))
-		/*
-		if (findLowestPath(sx+1,sy,dx,dy,count+1,sx,sy)==true) return true;
-		
-	//if (!hasElement(sx,sy+1))
-		if (findLowestPath(sx,sy+1,dx,dy,count+1,sx,sy)==true) return true;
-	
-	//if (!hasElement(sx-1,sy))
-		if (findLowestPath(sx-1,sy,dx,dy,count+1,sx,sy)==true) return true;
-		
-	//if (!hasElement(sx,sy-1))
-		if (findLowestPath(sx,sy-1,dx,dy,count+1,sx,sy)==true) return true;
-*/
-
-	var s1=hasElement(startX+1,startY);
-	var s2=hasElement(startX,startY+1);
-	var s3=hasElement(startX-1,startY);
-	var s4=hasElement(startX,startY-1);
-	var p1,p2,p3,p4;
-	if (!s1)
-		var p1=findLowestPath(startX,startY,lastSx+1,lastSy,dx,dy,1,lastSx,lastSy);
-	if (!s2)
-		var p2=findLowestPath(startX,startY,lastSx,lastSy+1,dx,dy,1,lastSx,lastSy);
-	if (!s3)
-		var p3=findLowestPath(startX,startY,lastSx-1,lastSy,dx,dy,1,lastSx,lastSy);
-	if (!s4)
-		var p4=findLowestPath(startX,startY,lastSx,lastSy-1,dx,dy,1,lastSx,lastSy);
-	
-	if (s1 && s2 && s3 && s4) // increment the startX by whatever hasn't been explored
-	{
-		startX=startX+1;
-		if (findLowestPath(startX,startY,lastSx+1,lastSy,dx,dy,1,lastSx,lastSy)==true)
+	if (p==3) {
+		yp++;
+		if (fp(rx,ry+yp,rx,ry,yp,dx,dy,4)==true)
 			return true;
-		if (find)
-		return false;
+		yp--;
+		xm++;
+		if (fp(rx-xm,ry,rx,ry,xm,dx,dy,1)==true)
+			return true;
+		xm--;
+		xp++;
+		if (fp(rx+xp,ry,rx,ry,xp,dx,dy,2)==true)
+			return true;
+		xp--;
+		ym++;
+		if (fp(rx,ry-ym,rx,ry,ym,dx,dy,3)==true)
+			return true;
+		ym--;
+
 	}
 	
+	if (p==2) {
+		ym++;
+		if (fp(rx,ry-ym,rx,ry,ym,dx,dy,3)==true)
+			return true;
+		ym--;
+		yp++;
+		if (fp(rx,ry+yp,rx,ry,yp,dx,dy,4)==true)
+			return true;
+		yp--;
+		xm++;
+		if (fp(rx-xm,ry,rx,ry,xm,dx,dy,1)==true)
+			return true;
+		xm--;
+		xp++;
+		if (fp(rx+xp,ry,rx,ry,xp,dx,dy,2)==true)
+			return true;
+		xp--;
+
+	}
+	
+	if (p==1) {
+		xp++;
+		if (fp(rx+xp,ry,rx,ry,xp,dx,dy,2)==true)
+			return true;
+		xp--;
+		ym++;
+		if (fp(rx,ry-ym,rx,ry,ym,dx,dy,3)==true)
+			return true;
+		else return false;
 		
-	if (p1==true || p2 == true || p3 == true || p4 == true) return true;
+		yp++;
+		if (fp(rx,ry+yp,rx,ry,yp,dx,dy,4)==true)
+			return true;
+		yp--;
+		xm++;
+		if (fp(rx-xm,ry,rx,ry,xm,dx,dy,1)==true)
+			return true;
+		xm--;
+	}
+	
+	
 	
 	return false;
-
-	
-	/*
-	if (findLowestPath(sx+uppers[0],sy,dx,dy,'D',c+1)==true)
-		return true;
-	if (findLowestPath(sx,sy+uppers[1],dx,dy,'D',c+1)==true)
-		return true;
-	if (findLowestPath(sx-uppers[2],sy,dx,dy,'D',c+1)==true)
-		return true;
-	if (findLowestPath(sx,sy-uppers[3],dx,dy,'D',c+1)==true)
-		return true;
 	*/
-//	if (dir=='START') // call all 4 to get it started
-/*	var p = {};
-	p[0]=[1,0,0,0];
-	p[1]=[0,1,0,0];
-	p[2]=[0,0,-1,0];
-	p[3]=[0,0,0,-1];
-	for (x=0;x<4;x++) {
-		if (findLowestPath(sx+p[x][0]+p[x][2],sy+p[x][1]+p[x][3],dx,dy,'D',c+1)==true)
-			return true;
-	}
-	
-	path=0;
-
-	if (dir=='START') {
-		if (findLowestPath(sx+1,sy,dx,dy,'RIGHT',c+1)==true)
-			return true;
-		if (findLowestPath(sx,sy+1,dx,dy,'DOWN',c+1)==true)
-			return true;
-		if (findLowestPath(sx-1,sy,dx,dy,'LEFT',c+1)==true)
-			return true;
-		if (findLowestPath(sx,sy-1,dx,dy,'UP',c+1)==true)
-			return true;
-	} else {
-
-		if (findLowestPath(sx-1,sy,dx,dy,'START',c+1)==true)
-			return true;
-		if (findLowestPath(sx+1,sy,dx,dy,'START',c+1)==true)
-			return true;
-		if (findLowestPath(sx,sy-1,dx,dy,'START',c+1)==true)
-			return true;
-		if (findLowestPath(sx,sy+1,dx,dy,'START',c+1)==true)
-			return true;
-
-	}
-	
-	if (dir=='RIGHT') {
-		if (findLowestPath(sx+1,sy,dx,dy,'RIGHT',c+1)==true)
-			return true;
-		if (findLowestPath(sx,sy+1,dx,dy,'DOWN',c+1)==true)
-			return true;
-		if (findLowestPath(sx-1,sy,dx,dy,'LEFT',c+1)==true)
-			return true;
-		if (findLowestPath(sx,sy-1,dx,dy,'UP',c+1)==true)
-			return true;
-	}
-	*/
-	/*
-	for (var x=0;x<36;x++) {
-		
-
-		for (var y=0;y<36;y++) {
-			if (dx+x<36 && dy+y <36 && !hasGem([dx+x,dy+y]))
-				stack.push([dx+x,dy+y,x+y]);
-			if (dx+y<36 && dy+x <36 && !hasGem([dx+y,dy+x]))
-				stack.push([dx+y,dy+x,x+y]);
-			if (dx-x>0 && dy-y >0 && !hasGem([dx-x,dy-y]))
-				stack.push([dx-x,dy-y,x+y]);
-			if (dx-y>0 && dy-x >0 && !hasGem([dx-y,dy-x]))
-				stack.push([dx-y,dy-x,x+y]);
-			if (dx+y<36 && dy-x>0 && !hasGem([dx+y,dy-x]))
-				stack.push([dx+y,dy-x,x+y]);
-			if (dx-y>0 && dy+x<36 && !hasGem([dx-y,dy+x]))
-				stack.push([dx-y,dy+x,x+y]);
-
-		}
-	}
-	var shortest = [];
-
-	var counter = 0;
-	
-	for (var x=0; x<stack.length;x++) {
-		
-		for (var y=0; y<stack.length;y++) {
-				if (stack[x][0]==stack[y][0] && stack[x][1]==stack[y][1]) {
-					
-					
-				}
-
-		}
-	}
-*/
-
-
 }
-
-function findPathBetweenPoints(sx,sy,dx,dy) {
-
-	var	newsXA=getMiddleNumber(sx,dx);
-	var	newsYA=getMiddleNumber(sy,dy);
-	var	newdXB=getMiddleNumber(sx,dx);
-	var	newdYB=getMiddleNumber(sy,dy);
-
-	if (hasGem([newdXB,newdYB])) {
-		logT(sx+","+sy+":"+dx+","+dy+ "::BLOCKED @" + [newdXB,newdYB]);
-	}
-
-	logT(sx+","+sy+":"+dx+","+dy+ "::" + " == ((" + newsXA + 
-			" - " + newsYA + " - " + dx + " - " + dy + 
-			")) : ((" + sx + " - " + sy + " - " + newdXB + 
-			" - " + newdYB + ")) : ");
-
-	if ( (sy == dy-1 || sy == dy+1) && (sx == dx) ||
-		 (sx == dx-1 || sx == dx+1) && (sy == dy)
-		) { // if there is only one space away then return a movement directly there
-		var toReturn = [[sx,sy],[dx,dy]];
-		logT(sx+","+sy+":"+dx+","+dy+ "::B::Returning: " + toReturn );
-		return toReturn;
-	}
-
-	aOUT = findPathBetweenPoints(sx,sy,newdXB,newdYB);
-	bOUT = findPathBetweenPoints(newsXA,newsYA,dx,dy);
-	logT(sx+","+sy+":"+dx+","+dy+ "::A:" +aOUT + " B:" + bOUT);
-	aOUT.pop(); // Since our middle number should be in both arrays, drop the last record in the first array so we don't double count
-	return aOUT.concat(bOUT);
-
-}
-
 
 var isThisInPath = function (x,y) {
 // Just reference at this point
@@ -641,11 +386,12 @@ var Board = function () {
 		for (x=0;x<36;x++) 
 			for (y=0;y<36;y++)
 				document.getElementById("x"+x+"y"+y).innerHTML="";
-
-		newPathList=fp(4,6,0,4,20);
+		newPathList=fp(4,6,4,6,0,4,20,4);
 		logT(newPathList)
 		
 		newPathList=stack;
+				logT(newPathList)
+
 /*
 		newPathList.pop();
 		newPathList=newPathList.concat(findPathBetweenPoints(4,20,32,20));
@@ -682,30 +428,37 @@ var Board = function () {
 	
 	this.addSquares = function () {
 // (4,4) => (4,20) => (32,20) => (32,5) => (19,5) => (19,32) => (32,32)
+		
 		for (x=0;x<width;x++)
 		{
+			maze[x]=[];
 			for (y=0;y<height;y++)
 			{
 				tmpId= "x"+x+"y"+y;
-				
+				maze[x][y]=1;
 				var gemSpace = document.createElement("span");
 				gemSpace.id=tmpId;
 				gemSpace.style.position="absolute";
 				gemSpace.style.left=parseFloat(left,10)+x*squareSize+"px";
 				gemSpace.style.top=parseFloat(top,10)+y*squareSize + "px";
-				
+				gemSpace.style.fontSize="10px";
 				if (isThisInPath(x,y))
 					gemSpace.style.background=pathColor;
 				else
 					gemSpace.style.background=defaultColor;
-				if (isThisBlocked(tmpId))
+				if (isThisBlocked(tmpId)) {
 					gemSpace.style.background=noGoColor;
+					maze[x][y]=2; // blocked
+				}
+				
+				
 				gemSpace.style.width=squareSize+"px";
 				gemSpace.style.height=squareSize+"px";
 				gemSpace.style.border="thin solid black";
 				gemSpace.gem=null;
 				gemSpace.onclick=function(s) { addGem(s); };
 				document.getElementById("gameArea").appendChild(gemSpace);
+				
 		//		document.write("<span style='position:absolute;left:" + x*squarePostionVar + "px;top:" + y*squarePostionVar + "px;background:black;width:"+squareSize+"px;height:"+squareSize+"px'></span>");
 			}
 		}
@@ -713,11 +466,8 @@ var Board = function () {
 	
 	}
 	
-	
 	var pathList = [[4,4],[4,20],[32,20],[32,5],[19,5],[19,32],[32,32]];
 	var newPathList = [];
-
-	
 }
 
 function hasGem(p) {
