@@ -67,7 +67,7 @@ function getMiddleNumber(x,y) {
 }
 
 var maze = [];
-var backupMaze;
+var backupMaze = [];
 var stack = [];
 
 function hasElement(ix,iy) {
@@ -147,36 +147,18 @@ var xm=0,xp=0,ym=0,yp=0;
 
 function fp(s,e) {
 	
-	if (s.x==e.x&&s.y==e.y) 
-		return true;
-	
-	s.traversed=true;
-	
 	document.getElementById("x"+s.x+"y"+s.y).innerHTML="";
 	document.getElementById("x"+s.x+"y"+s.y).appendChild(document.createTextNode(s.c));
+
+	if (s.x==e.x&&s.y==e.y) 
+		return true;
+
+	s.traversed=true;
 	
+	//if (s.c>)
+		//return false;
 	var next;
-	next=s.left;
-	if (next!=null) {
-		if ((!next.blocked && !next.gem != null && next.traversed!=true) || (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
-			next.c=s.c+1;
-			fp(next,e);
-		}
-	}
-	next=s.right;
-	if (next!=null) {
-		if ((!next.blocked && !next.gem != null && next.traversed!=true) || (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
-			next.c=s.c+1;
-			fp(next,e);
-		}
-	}
-	next=s.up;
-	if (next!=null) {
-		if ((!next.blocked && !next.gem != null && next.traversed!=true) || (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
-			next.c=s.c+1;
-			fp(next,e);
-		}
-	}
+	
 	next=s.down;
 	if (next!=null) {
 		if ((!next.blocked && !next.gem != null && next.traversed!=true) || (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
@@ -185,8 +167,62 @@ function fp(s,e) {
 		}
 	}
 	
+	next=s.right;
+	if (next!=null) {
+		if ((!next.blocked && !next.gem != null && next.traversed!=true) || (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
+			next.c=s.c+1;
+			fp(next,e);
+		}
+	}
+	
+	next=s.up;
+	if (next!=null) {
+		if ((!next.blocked && !next.gem != null && next.traversed!=true) || (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
+			next.c=s.c+1;
+			fp(next,e);
+		}
+	}
+
+	next=s.left;
+	if (next!=null) {
+		if ((!next.blocked && !next.gem != null && next.traversed!=true) || (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
+			next.c=s.c+1;
+			fp(next,e);
+		}
+	}
+	
+	
 	return false;
 }
+
+function findLowest(up,down,left,right) {
+	
+	var tmp;
+	tmp	= up;
+	if (tmp.c==Math.min((up.c==null?99999:up.c),(down.c==null?99999:down.c),(left.c==null?99999:left.c),(right.c==null?99999:right.c)))
+		return tmp;
+	tmp = down;
+	if (tmp.c==Math.min((up.c==null?99999:up.c),(down.c==null?99999:down.c),(left.c==null?99999:left.c),(right.c==null?99999:right.c)))
+		return tmp;
+	tmp = left;
+	if (tmp.c==Math.min((up.c==null?99999:up.c),(down.c==null?99999:down.c),(left.c==null?99999:left.c),(right.c==null?99999:right.c)))
+		return tmp;
+	tmp = right;
+	if (tmp.c==Math.min((up.c==null?99999:up.c),(down.c==null?99999:down.c),(left.c==null?99999:left.c),(right.c==null?99999:right.c)))
+		return tmp;
+	
+
+}
+
+function getShortestPath(s,e) {
+
+	if (s.x==e.x&&s.y==e.y)
+		return true;
+	getShortestPath(s,findLowest(e.up,e.down,e.left,e.right));
+	stack.push(e);
+
+}
+
 
 var canIWalkHere = function (id) {
 
@@ -299,26 +335,43 @@ var Board = function () {
 			$(o).animate({top: "+=" + (point.top-parseFloat(o.style.top,10)),left: "+=" + (point.left-parseFloat(o.style.left,10)) }, 100,"linear", function() {
 				if (path.length>0) {
 					p = path.pop();
-					board.moveMonster(p[0],p[1],path)
+					board.moveMonster(p.x,p.y,path)
 				}
 			})
 		}
 	}
 
 	this.moveMonsterOnPath = function () {
-		stack=[];
-		stack.push([4,6,1]); // push first row?
+
+		if (backupMaze.length==0) {
+			for (x=0;x<36;x++)
+				for (y=0;y<36;y++) {
+					if (backupMaze[x]==null)
+						backupMaze[x]=[];
+					backupMaze[x][y]=maze[x][y];
+				}
+		}
+		else
+			for (x=0;x<36;x++)
+				for (y=0;y<36;y++) {
+					maze[x][y]=backupMaze[x][y];
+				}
+		
 		//newPathList=findPathBetweenPoints(4,5,4,20);
 		for (x=0;x<36;x++) 
 			for (y=0;y<36;y++)
 				document.getElementById("x"+x+"y"+y).innerHTML="";
 		maze[4][6].c=0;
-		newPathList=fp(maze[4][6],maze[4][20]);
-		logT(newPathList)
+		fp(maze[4][6],maze[4][20]);
+		
+		logT(newPathList);
+		
+		getShortestPath(maze[4][6],maze[4][20]);
 		
 		newPathList=stack;
-				logT(newPathList)
-
+		for (x=0;x<newPathList.length;x++)
+			logT(newPathList[x].x + "," + newPathList[x].y);
+		newPathList.reverse();
 /*
 		newPathList.pop();
 		newPathList=newPathList.concat(findPathBetweenPoints(4,20,32,20));
@@ -331,7 +384,7 @@ var Board = function () {
 		newPathList.pop();
 		newPathList=newPathList.concat(findPathBetweenPoints(19,32,32,32));
 */
-		newPathList.reverse();
+		//newPathList.reverse();
 
 
 //		output="";
@@ -347,8 +400,8 @@ var Board = function () {
 			if (x<newPathList.length-1)
 				document.getElementById("x"+p[0]+"y"+p[1]).appendChild(document.createTextNode(newPathList[x+1][0]<p[0]?"R":newPathList[x+1][1]>p[1]?"U":"D"));
 		}*/
-//		p = newPathList.pop();
-//		this.moveMonster(p[0],p[1],newPathList);
+		p = newPathList.pop();
+		this.moveMonster(p.x,p.y,newPathList);
 
 
 	}
@@ -364,7 +417,47 @@ var Board = function () {
 		var gem=null; // gem or not
 		var traversed=false;
 	}
+/*
+	this.rebuildMaze = function () {
+		for (var x=0;x<width;x++)
+		{
+			maze[x]=[];
+			for (var y=0;y<height;y++)
+			{
+				var s = new Square();
+				s.x=x;
+				s.y=y;
+				
+				if (x==0 && y==0) { // first square, no linking squares!
+					s.up=null;
+					s.down=null;
+					s.right=null;
+					s.left=null;
+				}
+				
+				if (y>0) { // if not top row
+					s.up=maze[x][y-1];
+					maze[x][y-1].down=s;
+				}
+				if (x>0) {
+					s.left=maze[x-1][y];
+					maze[x-1][y].right=s;
+				}
+				
+				if (y==36) {
+					s.down=null;
+				}
+				if (x==36) {
+					s.up==null;
+				}
+				if (!canIWalkHere(tmpId))
+					s.blocked=false;
+				else 
+					s.blocked=true;
+				maze[x][y]=s;
 
+	}
+	*/
 	this.addSquares = function () {
 // (4,4) => (4,20) => (32,20) => (32,5) => (19,5) => (19,32) => (32,32)
 		
@@ -415,6 +508,7 @@ var Board = function () {
 
 				if (isThisBlocked(tmpId)) {
 					gemSpace.style.background=noGoColor;
+					gemSpace.style.color="white";
 				
 					
 				}
