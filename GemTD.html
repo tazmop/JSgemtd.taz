@@ -67,6 +67,7 @@ function getMiddleNumber(x,y) {
 }
 
 var maze = [];
+var backupMaze;
 var stack = [];
 
 function hasElement(ix,iy) {
@@ -142,139 +143,63 @@ function getCounts(c) {
 var xm=0,xp=0,ym=0,yp=0;
 
 
-function fp(sx,sy,rx,ry,c,dx,dy,p) {
 
-	var closedSet = {};
 
-	var openSet = maze;
-
-	var cameFrom = maze;
-
-	var gScore = maze;
-
-	gScore[sx][sy] = 0;
-
-	var fscore = maze;
-
-	fscore[sx][sy] = 1;
-
-	while (openSet != null) {
-		var current = openSet;
-		if (current[0]==dx&&current[1]==dy) {
-			logT("Gotit")
-			return cameFrom;
+function fp(s,e) {
+	
+	if (s.x==e.x&&s.y==e.y) 
+		return true;
+	
+	s.traversed=true;
+	
+	document.getElementById("x"+s.x+"y"+s.y).innerHTML="";
+	document.getElementById("x"+s.x+"y"+s.y).appendChild(document.createTextNode(s.c));
+	
+	var next;
+	next=s.left;
+	if (next!=null) {
+		if ((!next.blocked && !next.gem != null && next.traversed!=true) || (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
+			next.c=s.c+1;
+			fp(next,e);
 		}
-
-
-		logT(openSet)
-
-		break;
-
 	}
-
-/*
-	if (sx==dx && sy==dy)
-		return true; // found the end
-	if (sx>36||sx<0||sy>36||sy<0)
-		return false;
-		var s;
-	if (s=hasElement(sx,sy)) {
-		// have been here before
-		if (s[2]>c) // count is higher
-			removeElement(sx,sy);
-		else
-			return false;
+	next=s.right;
+	if (next!=null) {
+		if ((!next.blocked && !next.gem != null && next.traversed!=true) || (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
+			next.c=s.c+1;
+			fp(next,e);
+		}
 	}
-	if (c>200) {
-		logT("Ouch");
+	next=s.up;
+	if (next!=null) {
+		if ((!next.blocked && !next.gem != null && next.traversed!=true) || (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
+			next.c=s.c+1;
+			fp(next,e);
+		}
 	}
-	if (new LineSegment(0,0,8,5).isPointOnLine(sx,sy) || hasGem([sx,sy]) )
-		return false;
-	//c++;
-	stack.push([sx,sy,c]);
-	document.getElementById("x"+sx+"y"+sy).innerHTML="";
-	document.getElementById("x"+sx+"y"+sy).appendChild(document.createTextNode(c));
-
-	if (p==4) {
-		xm++;
-		if (fp(rx-xm+xp,ry,rx,ry,xm,dx,dy,1)==true)
-			return true;
-		xp++;
-		if (fp(rx+xp,ry,rx,ry,xp,dx,dy,2)==true)
-			return true;
-		ym++;
-		if (fp(rx,ry-ym,rx,ry,ym,dx,dy,3)==true)
-			return true;
-		yp++;
-		if (fp(rx,ry+yp,rx,ry,yp,dx,dy,4)==true)
-			return true;
+	next=s.down;
+	if (next!=null) {
+		if ((!next.blocked && !next.gem != null && next.traversed!=true) || (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
+			next.c=s.c+1;
+			fp(next,e);
+		}
 	}
-	
-	if (p==3) {
-		yp++;
-		if (fp(rx,ry+yp,rx,ry,yp,dx,dy,4)==true)
-			return true;
-		yp--;
-		xm++;
-		if (fp(rx-xm,ry,rx,ry,xm,dx,dy,1)==true)
-			return true;
-		xm--;
-		xp++;
-		if (fp(rx+xp,ry,rx,ry,xp,dx,dy,2)==true)
-			return true;
-		xp--;
-		ym++;
-		if (fp(rx,ry-ym,rx,ry,ym,dx,dy,3)==true)
-			return true;
-		ym--;
-
-	}
-	
-	if (p==2) {
-		ym++;
-		if (fp(rx,ry-ym,rx,ry,ym,dx,dy,3)==true)
-			return true;
-		ym--;
-		yp++;
-		if (fp(rx,ry+yp,rx,ry,yp,dx,dy,4)==true)
-			return true;
-		yp--;
-		xm++;
-		if (fp(rx-xm,ry,rx,ry,xm,dx,dy,1)==true)
-			return true;
-		xm--;
-		xp++;
-		if (fp(rx+xp,ry,rx,ry,xp,dx,dy,2)==true)
-			return true;
-		xp--;
-
-	}
-	
-	if (p==1) {
-		xp++;
-		if (fp(rx+xp,ry,rx,ry,xp,dx,dy,2)==true)
-			return true;
-		xp--;
-		ym++;
-		if (fp(rx,ry-ym,rx,ry,ym,dx,dy,3)==true)
-			return true;
-		else return false;
-		
-		yp++;
-		if (fp(rx,ry+yp,rx,ry,yp,dx,dy,4)==true)
-			return true;
-		yp--;
-		xm++;
-		if (fp(rx-xm,ry,rx,ry,xm,dx,dy,1)==true)
-			return true;
-		xm--;
-	}
-	
-	
 	
 	return false;
-	*/
 }
+
+var canIWalkHere = function (id) {
+
+		y=id.split("y")[1];
+		x=id.split("y")[0].split("x")[1];
+
+		if (new LineSegment(0,0,8,5).isPointOnLine(x,y)) // Around entrance
+			return true;
+		if (new LineSegment(32,30,34,34).isPointOnLine(x,y)) // Around exit
+			return true;
+		return hasGem([x,y]);
+}
+
 
 var isThisInPath = function (x,y) {
 // Just reference at this point
@@ -317,6 +242,7 @@ var isThisBlocked = function (id) {
 			return true;
 		return hasGem([x,y]);
 }
+
 
 var Board = function () {
 	var position = "absolute";
@@ -386,7 +312,8 @@ var Board = function () {
 		for (x=0;x<36;x++) 
 			for (y=0;y<36;y++)
 				document.getElementById("x"+x+"y"+y).innerHTML="";
-		newPathList=fp(4,6,4,6,0,4,20,4);
+		maze[4][6].c=0;
+		newPathList=fp(maze[4][6],maze[4][20]);
 		logT(newPathList)
 		
 		newPathList=stack;
@@ -425,17 +352,56 @@ var Board = function () {
 
 
 	}
-	
+	var Square = function () {
+		var up=null;
+		var down=null;
+		var left=null;
+		var right=null; // will all link to other squares
+		var x,y;
+		var weight=1;
+		var c=999999; // steps to get here default value
+		var blocked=false; // blocked or not
+		var gem=null; // gem or not
+		var traversed=false;
+	}
+
 	this.addSquares = function () {
 // (4,4) => (4,20) => (32,20) => (32,5) => (19,5) => (19,32) => (32,32)
 		
-		for (x=0;x<width;x++)
+		for (var x=0;x<width;x++)
 		{
 			maze[x]=[];
-			for (y=0;y<height;y++)
+			for (var y=0;y<height;y++)
 			{
+				var s = new Square();
+				s.x=x;
+				s.y=y;
+				
+				if (x==0 && y==0) { // first square, no linking squares!
+					s.up=null;
+					s.down=null;
+					s.right=null;
+					s.left=null;
+				}
+				
+				if (y>0) { // if not top row
+					s.up=maze[x][y-1];
+					maze[x][y-1].down=s;
+				}
+				if (x>0) {
+					s.left=maze[x-1][y];
+					maze[x-1][y].right=s;
+				}
+				
+				if (y==36) {
+					s.down=null;
+				}
+				if (x==36) {
+					s.up==null;
+				}
+				
 				tmpId= "x"+x+"y"+y;
-				maze[x][y]=1;
+
 				var gemSpace = document.createElement("span");
 				gemSpace.id=tmpId;
 				gemSpace.style.position="absolute";
@@ -446,12 +412,20 @@ var Board = function () {
 					gemSpace.style.background=pathColor;
 				else
 					gemSpace.style.background=defaultColor;
+
 				if (isThisBlocked(tmpId)) {
 					gemSpace.style.background=noGoColor;
-					maze[x][y]=2; // blocked
+				
+					
 				}
+				if (!canIWalkHere(tmpId))
+					s.blocked=false;
+				else 
+					s.blocked=true;
 				
 				
+				
+				maze[x][y]=s;
 				gemSpace.style.width=squareSize+"px";
 				gemSpace.style.height=squareSize+"px";
 				gemSpace.style.border="thin solid black";
@@ -481,6 +455,7 @@ function hasGem(p) {
 	}
 }
 
+/*
 function Square() {
 	this.size = 10;
 	this.blocked = false;
@@ -593,6 +568,10 @@ function addGem(s)
 		var g = getGem();
 		s.target.gem = g;
 		s.target.style.background = g.gemObject.background;
+		x=s.target.id.split("y")[1];
+		y=s.target.id.split("y")[0].split("x")[1];
+		maze[y][x].gem=g;
+		maze[y][x].blocked=true;
 	}
 document.getElementById("INFO").innerHTML=s.target.id;
 }
