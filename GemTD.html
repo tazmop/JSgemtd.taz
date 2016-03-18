@@ -43,8 +43,6 @@ return d;
 
 }
 
-
-//[0,0],[0,1],[0,2],[0,3],[1,3],[2,3],[3,3]
 beenTo=[];
 
 
@@ -59,89 +57,8 @@ function logT(l) {
 	//document.createElement("<span><br>" + l + "</span>");
 }
 
-function getMiddleNumber(x,y) {
-	if (x>y)
-		return Math.round(((x-y)/2)+y);
-	else
-		return Math.round(((y-x)/2)+x);
-}
-
 var maze = [];
-var backupMaze = [];
 var stack = [];
-
-function hasElement(ix,iy) {
-	for (x=0;x<stack.length;x++)
-		if (stack[x][0]==ix && stack[x][1]==iy)
-			return stack[x];
-	return false;
-}
-
-function removeElement(ix,iy) {
-	for (x=0;x<stack.length;x++)
-		if (stack[x][0]==ix && stack[x][1]==iy)
-			break;
-	stack.splice(x,1);
-	logT("Removed: " + ix +","+ iy)
-}
-
-/*
-
-var x=4;
-var y=4;
-var c=0;
-while (x!=dx && y!=dy) {
-	c++;
-	e=hasElement(x,y);
-	if(!e) {}
-	 else
-	if (e[3]<c)
-		removeElement(x,y);
-	
-	stack.push([])
-}
-
-check
-x/y
-[4,4] x,y
-	[4,5] x,y+1
-		[4,4] // REPEAT x,y+1-1
-			[4,5] x,y+1-1+1
-			[4,3]
-			[5,4]
-			[3,4]
-		[3,5] x-1,y+1
-			[3,6] x-1,y+1+1
-			[3,4]
-			[4,5]
-			[2,5]
-		[4,6]
-		[5,5]
-	[4,3]
-	[3,4]
-	[5,4]
-
-
-*/
-
-function getCounts(c) {
-
-	var p= [1,1,1,1];
-	/*
-	var tc=c;
-	while (tc>0) {
-		path=Math.floor(Math.random()*4);
-		p[path]=p[path]+1;
-	
-		tc--;
-	}*/
-		return p;
-}
-
-
-
-var xm=0,xp=0,ym=0,yp=0;
-
 
 
 
@@ -341,65 +258,54 @@ var Board = function () {
 		}
 	}
 
-	this.moveMonsterOnPath = function () {
+	
+	this.moveMonsterBetween = function (sx,sy,dx,dy) {
+		maze[sx][sy].c=0;
+		fp(maze[sx][sy],maze[dx][dy]);
+		logT(newPathList);
+		getShortestPath(maze[sx][sy],maze[dx][dy]);
 
-		if (backupMaze.length==0) {
-			for (x=0;x<36;x++)
-				for (y=0;y<36;y++) {
-					if (backupMaze[x]==null)
-						backupMaze[x]=[];
-					backupMaze[x][y]=maze[x][y];
-				}
-		}
-		else
-			for (x=0;x<36;x++)
-				for (y=0;y<36;y++) {
-					maze[x][y]=backupMaze[x][y];
-				}
+	}
+	
+	this.moveMonsterOnPath = function () {
+		stack=[];
+		board.rebuildMaze();
 		
 		//newPathList=findPathBetweenPoints(4,5,4,20);
 		for (x=0;x<36;x++) 
 			for (y=0;y<36;y++)
 				document.getElementById("x"+x+"y"+y).innerHTML="";
+				// (4,4) => (4,20) => (32,20) => (32,5) => (19,5) => (19,32) => (32,32)
+
+		this.moveMonsterBetween(4,6,4,20);
+		board.rebuildMaze();
+		this.moveMonsterBetween(4,20,32,20);
+		board.rebuildMaze();
+		this.moveMonsterBetween(32,20,32,5);
+		board.rebuildMaze();
+		this.moveMonsterBetween(32,5,19,5);
+		board.rebuildMaze();
+		this.moveMonsterBetween(19,5,19,32);
+		board.rebuildMaze();
+		this.moveMonsterBetween(19,32,32,32);
+		/*
 		maze[4][6].c=0;
 		fp(maze[4][6],maze[4][20]);
-		
 		logT(newPathList);
-		
 		getShortestPath(maze[4][6],maze[4][20]);
+
+		maze[4][20].c=0;
+		fp(maze[4][20],maze[32][20]);
+		logT(newPathList);
+		getShortestPath(maze[4][20],maze[32][20]);
+		*/
 		
 		newPathList=stack;
 		for (x=0;x<newPathList.length;x++)
 			logT(newPathList[x].x + "," + newPathList[x].y);
+			
 		newPathList.reverse();
-/*
-		newPathList.pop();
-		newPathList=newPathList.concat(findPathBetweenPoints(4,20,32,20));
-		newPathList.pop();
-		newPathList=newPathList.concat(findPathBetweenPoints(32,20,32,5));
-		newPathList.pop();
-		newPathList=newPathList.concat(findPathBetweenPoints(32,5,19,5));
-		newPathList.pop();
-		newPathList=newPathList.concat(findPathBetweenPoints(19,5,19,32));
-		newPathList.pop();
-		newPathList=newPathList.concat(findPathBetweenPoints(19,32,32,32));
-*/
-		//newPathList.reverse();
 
-
-//		output="";
-	//	for (x=0;x<newPathList.length;x++)
-		//	output=output+"<span style='"+ (newPathList[x][0]==4&&newPathList[x][1]==4?"color:red;":"") + "position:absolute;left:"+newPathList[x][0]*30+"px;top:"+(newPathList[x][1]*20)+"px'>"+newPathList[x][2] + "</span>";
-/*		output=output + "<BR>BEENTO:<BR>";
-		for (x=0;x<beenTo.length;x++)
-			output=output+beenTo[x] + " <BR>";*/
-/*		
-		for (x=0;x<newPathList.length;x++) {
-			p=newPathList[x];
-			document.getElementById("x"+p[0]+"y"+p[1]).innerHTML="";
-			if (x<newPathList.length-1)
-				document.getElementById("x"+p[0]+"y"+p[1]).appendChild(document.createTextNode(newPathList[x+1][0]<p[0]?"R":newPathList[x+1][1]>p[1]?"U":"D"));
-		}*/
 		p = newPathList.pop();
 		this.moveMonster(p.x,p.y,newPathList);
 
@@ -417,16 +323,17 @@ var Board = function () {
 		var gem=null; // gem or not
 		var traversed=false;
 	}
-/*
+
 	this.rebuildMaze = function () {
 		for (var x=0;x<width;x++)
 		{
-			maze[x]=[];
 			for (var y=0;y<height;y++)
 			{
 				var s = new Square();
 				s.x=x;
 				s.y=y;
+				s.gem=maze[x][y].gem;
+				s.blocked=maze[x][y].blocked;
 				
 				if (x==0 && y==0) { // first square, no linking squares!
 					s.up=null;
@@ -450,14 +357,12 @@ var Board = function () {
 				if (x==36) {
 					s.up==null;
 				}
-				if (!canIWalkHere(tmpId))
-					s.blocked=false;
-				else 
-					s.blocked=true;
+				
 				maze[x][y]=s;
-
+			}
+		}
 	}
-	*/
+
 	this.addSquares = function () {
 // (4,4) => (4,20) => (32,20) => (32,5) => (19,5) => (19,32) => (32,32)
 		
@@ -727,12 +632,6 @@ board.addMonster();
 //board.moveMonster();
 //board.startGameLoop();
 })
-
-
-
-
-
-
 
 
 </script>
