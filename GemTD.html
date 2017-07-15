@@ -50,7 +50,6 @@ beenTo=[];
 function logT(l) {
 	var e = document.createElement("span");
 	e.appendChild(document.createTextNode(l));
-	
 	document.getElementById("LOG").appendChild(document.createElement("br"));
 	document.getElementById("LOG").appendChild(e);
 
@@ -60,41 +59,52 @@ function logT(l) {
 var maze = [];
 var stack = [];
 
-
+var orderInt=-1;
+var highest=0;
+var performance=0;
+var	overflowcheck=50;
+var downoverflow=0;
+var upoverflow=0;
+var leftoverflow=0;
+var rightoverflow=0;
 
 function fp(s,e) {
-	
+	performance++;
+	//logT("WN:"+s.c+":RW:["+s.x+"]["+s.y+"]:"+document.getElementById("x"+s.x+"y"+s.y).innerHTML);
+
 	document.getElementById("x"+s.x+"y"+s.y).innerHTML="";
 	document.getElementById("x"+s.x+"y"+s.y).appendChild(document.createTextNode(s.c));
-
 	if (s.x==e.x&&s.y==e.y) 
 		return true;
-
 	s.traversed=true;
-	
-	//if (s.c>)
-		//return false;
+	if (s.c>overflowcheck) {
+		//logT("Overflow:"+ s.x + ":"+s.y);
+		return false;
+	}
+
 	var next;
-	
 	next=s.down;
 	if (next!=null) {
-		if ((!next.blocked && !next.gem != null && next.traversed!=true) || (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
+		if ((!next.blocked && !next.gem != null && next.traversed!=true) 
+			|| (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
 			next.c=s.c+1;
 			fp(next,e);
 		}
 	}
-	
+
 	next=s.right;
 	if (next!=null) {
-		if ((!next.blocked && !next.gem != null && next.traversed!=true) || (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
+		if ((!next.blocked && !next.gem != null && next.traversed!=true) 
+			|| (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
 			next.c=s.c+1;
 			fp(next,e);
 		}
 	}
-	
+
 	next=s.up;
 	if (next!=null) {
-		if ((!next.blocked && !next.gem != null && next.traversed!=true) || (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
+		if ((!next.blocked && !next.gem != null && next.traversed!=true) 
+			|| (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
 			next.c=s.c+1;
 			fp(next,e);
 		}
@@ -102,7 +112,8 @@ function fp(s,e) {
 
 	next=s.left;
 	if (next!=null) {
-		if ((!next.blocked && !next.gem != null && next.traversed!=true) || (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
+		if ((!next.blocked && !next.gem != null && next.traversed!=true) 
+			|| (next.traversed==true && next.c>s.c+1 && next.blocked==false && next.gem==null)) {
 			next.c=s.c+1;
 			fp(next,e);
 		}
@@ -115,25 +126,25 @@ function fp(s,e) {
 function findLowest(up,down,left,right) {
 	
 	var tmp;
+	high=9999;
 	tmp	= up;
-	if (tmp.c==Math.min((up.c==null?99999:up.c),(down.c==null?99999:down.c),(left.c==null?99999:left.c),(right.c==null?99999:right.c)))
+	if (tmp!=null && tmp.c==Math.min((up==undefined||(up!=null&&up.c==null)?high:up.c),(down==undefined||(down!=null&&down.c==null)?high:down.c),(left==undefined||(left!=null&&left.c==null)?high:left.c),(right==undefined||(right!=null&&right.c==null)?high:right.c)))
 		return tmp;
 	tmp = down;
-	if (tmp.c==Math.min((up.c==null?99999:up.c),(down.c==null?99999:down.c),(left.c==null?99999:left.c),(right.c==null?99999:right.c)))
+	if (tmp!=null && tmp.c==Math.min((up==undefined||(up!=null&&up.c==null)?high:up.c),(down==undefined||(down!=null&&down.c==null)?high:down.c),(left==undefined||(left!=null&&left.c==null)?high:left.c),(right==undefined||(right!=null&&right.c==null)?high:right.c)))
 		return tmp;
 	tmp = left;
-	if (tmp.c==Math.min((up.c==null?99999:up.c),(down.c==null?99999:down.c),(left.c==null?99999:left.c),(right.c==null?99999:right.c)))
+	if (tmp!=null && tmp.c==Math.min((up==undefined||(up!=null&&up.c==null)?high:up.c),(down==undefined||(down!=null&&down.c==null)?high:down.c),(left==undefined||(left!=null&&left.c==null)?high:left.c),(right==undefined||(right!=null&&right.c==null)?high:right.c)))
 		return tmp;
 	tmp = right;
-	if (tmp.c==Math.min((up.c==null?99999:up.c),(down.c==null?99999:down.c),(left.c==null?99999:left.c),(right.c==null?99999:right.c)))
+	if (tmp!=null && tmp.c==Math.min((up==undefined||(up!=null&&up.c==null)?high:up.c),(down==undefined||(down!=null&&down.c==null)?high:down.c),(left==undefined||(left!=null&&left.c==null)?high:left.c),(right==undefined||(right!=null&&right.c==null)?high:right.c)))
 		return tmp;
-	
 
 }
 
 function getShortestPath(s,e) {
 
-	if (s.x==e.x&&s.y==e.y)
+	if (s.x==e.x && s.y==e.y)
 		return true;
 	getShortestPath(s,findLowest(e.up,e.down,e.left,e.right));
 	stack.push(e);
@@ -196,6 +207,7 @@ var isThisBlocked = function (id) {
 		return hasGem([x,y]);
 }
 
+var boards=[];
 
 var Board = function () {
 	var position = "absolute";
@@ -244,50 +256,103 @@ var Board = function () {
 		document.getElementById("board").appendChild(m);
 	}
 	
-	this.moveMonster = function (xp,yp,path) {
+	this.moveMonster = function (o) {
 		len = monsterList.length;
+		if (o==undefined)
 		for (x=0;x<len;x++) {
-			point = this.getPxAtPoint(xp,yp);
 			o = monsterList[x];
+			monsterPoint=o.mypath.pop();
+			point = this.getPxAtPoint(monsterPoint.x,monsterPoint.y);
+			document.getElementById("DUMP").innerHTML=document.getElementById("DUMP").innerHTML + ":" + monsterPoint.x + "," + monsterPoint.y +"<br>";
 			$(o).animate({top: "+=" + (point.top-parseFloat(o.style.top,10)),left: "+=" + (point.left-parseFloat(o.style.left,10)) }, 100,"linear", function() {
-				if (path.length>0) {
-					p = path.pop();
-					board.moveMonster(p.x,p.y,path)
+				if (o.mypath.length>0) {
+					board.moveMonster(o);
 				}
 			})
 		}
-	}
+		else {
+			monsterPoint=o.mypath.pop();
+			point = this.getPxAtPoint(monsterPoint.x,monsterPoint.y);
+			document.getElementById("DUMP").innerHTML=document.getElementById("DUMP").innerHTML + ":" + monsterPoint.x + "," + monsterPoint.y +"<br>";
+			$(o).animate({top: "+=" + (point.top-parseFloat(o.style.top,10)),left: "+=" + (point.left-parseFloat(o.style.left,10)) }, 100,"linear", function() {
+				if (o.mypath.length>0) {
+					board.moveMonster(o);
+				}
+			})
 
-	
+		}
+	}
 	this.moveMonsterBetween = function (sx,sy,dx,dy) {
-		maze[sx][sy].c=0;
-		fp(maze[sx][sy],maze[dx][dy]);
+		found=false;
+		overflowcheck=40;
+		while (!found) {
+			this.rebuildMaze();
+			maze[sx][sy].c=0;
+			found=fp(maze[sx][sy],maze[dx][dy]);
+			overflowcheck=overflowcheck+10;
+			logT("Overflowed:"+sx+":"+sy+":" + overflowcheck)
+			if (overflowcheck>150)
+				break;
+		}
 		logT(newPathList);
 		getShortestPath(maze[sx][sy],maze[dx][dy]);
+		document.getElementById("DUMP").innerHTML= document.getElementById("DUMP").innerHTML+ performance + " Iterations performed...";
+	}
 
+	var moving=false;
+	this.moveNow= function(newPathList) { 	
+		for (x=0;x<newPathList.length;x++)
+			logT(newPathList[x].x + "," + newPathList[x].y);
+		newPathList.reverse();
+		for (x=0;x<monsterList.length;x++) {
+			if (monsterList[x].mypath==undefined)
+				monsterList[x].mypath=[];
+			savedlength =newPathList.length;
+			for (y=0;y<savedlength;y++) {
+				popped=newPathList.pop();
+				monsterList[x].mypath.unshift(popped);
+				if (popped.x==16)
+					x=x;
+				document.getElementById("DUMP").innerHTML= document.getElementById("DUMP").innerHTML+ "popped: "+popped.x + ":"+popped.y +"<br>";
+			}
+		}
+		if (!moving) {
+			moving=true;
+			board.moveMonster();
+		}
 	}
 	
 	this.moveMonsterOnPath = function () {
-		stack=[];
-		board.rebuildMaze();
 		
 		//newPathList=findPathBetweenPoints(4,5,4,20);
 		for (x=0;x<36;x++) 
 			for (y=0;y<36;y++)
 				document.getElementById("x"+x+"y"+y).innerHTML="";
 				// (4,4) => (4,20) => (32,20) => (32,5) => (19,5) => (19,32) => (32,32)
-
-		this.moveMonsterBetween(4,6,4,20);
-		board.rebuildMaze();
-		this.moveMonsterBetween(4,20,32,20);
-		board.rebuildMaze();
-		this.moveMonsterBetween(32,20,32,5);
-		board.rebuildMaze();
-		this.moveMonsterBetween(32,5,19,5);
-		board.rebuildMaze();
-		this.moveMonsterBetween(19,5,19,32);
-		board.rebuildMaze();
-		this.moveMonsterBetween(19,32,32,32);
+		stack=[];
+		board.moveMonsterBetween(4,6,4,20);
+		board.moveNow(stack);
+		boards[0]=document.getElementById("board").cloneNode(true);
+		stack=[];
+		board.moveMonsterBetween(4,20,32,20);
+		board.moveNow(stack);
+		boards[1]=document.getElementById("board").cloneNode(true);
+		stack=[];
+		board.moveMonsterBetween(32,20,32,5);
+		board.moveNow(stack);
+		boards[2]=document.getElementById("board").cloneNode(true);
+		stack=[];
+		board.moveMonsterBetween(32,5,19,5);
+		board.moveNow(stack);
+		boards[3]=document.getElementById("board").cloneNode(true);
+		stack=[];
+		board.moveMonsterBetween(19,5,19,32);
+		board.moveNow(stack);
+		boards[4]=document.getElementById("board").cloneNode(true);
+		stack=[];
+		board.moveMonsterBetween(19,32,32,32);
+		board.moveNow(stack);
+		boards[5]=document.getElementById("board").cloneNode(true);
 		/*
 		maze[4][6].c=0;
 		fp(maze[4][6],maze[4][20]);
@@ -299,15 +364,6 @@ var Board = function () {
 		logT(newPathList);
 		getShortestPath(maze[4][20],maze[32][20]);
 		*/
-		
-		newPathList=stack;
-		for (x=0;x<newPathList.length;x++)
-			logT(newPathList[x].x + "," + newPathList[x].y);
-			
-		newPathList.reverse();
-
-		p = newPathList.pop();
-		this.moveMonster(p.x,p.y,newPathList);
 
 
 	}
@@ -403,8 +459,8 @@ var Board = function () {
 				var gemSpace = document.createElement("span");
 				gemSpace.id=tmpId;
 				gemSpace.style.position="absolute";
-				gemSpace.style.left=parseFloat(left,10)+x*squareSize+"px";
-				gemSpace.style.top=parseFloat(top,10)+y*squareSize + "px";
+				gemSpace.style.left=parseFloat(0,10)+x*squareSize+"px";
+				gemSpace.style.top=parseFloat(0,10)+y*squareSize + "px";
 				gemSpace.style.fontSize="10px";
 				if (isThisInPath(x,y))
 					gemSpace.style.background=pathColor;
@@ -430,7 +486,7 @@ var Board = function () {
 				gemSpace.style.border="thin solid black";
 				gemSpace.gem=null;
 				gemSpace.onclick=function(s) { addGem(s); };
-				document.getElementById("gameArea").appendChild(gemSpace);
+				document.getElementById("board").appendChild(gemSpace);
 				
 		//		document.write("<span style='position:absolute;left:" + x*squarePostionVar + "px;top:" + y*squarePostionVar + "px;background:black;width:"+squareSize+"px;height:"+squareSize+"px'></span>");
 			}
@@ -619,6 +675,11 @@ function createMonster() {
 
 }
 
+function viewBoard(n) {
+	document.getElementById("gameArea").innerHTML="";
+	document.getElementById("gameArea").appendChild(boards[n]);
+}
+
 var board = null;
 
 $(document).ready(function () {
@@ -636,8 +697,16 @@ board.addMonster();
 
 </script>
 <span id="INFO"></span><input type="button" onclick="board.moveMonsterOnPath()" value="Start"> <input type="button" onclick="addMaze()" value="addMaze">
+<input type="button" onclick="viewBoard(1)" value="View Board 1">
+<input type="button" onclick="viewBoard(2)" value="View Board 2">
+<input type="button" onclick="viewBoard(3)" value="View Board 3">
+<input type="button" onclick="viewBoard(4)" value="View Board 4">
+<input type="button" onclick="viewBoard(5)" value="View Board 5">
+<input type="button" onclick="viewBoard(6)" value="View Board 6">
+
 
 <div id="DUMP" style="position:absolute;left:1000px;top:50px">DUMP</div>
 <div id="LOG" style="position:absolute;left:850px;top:20px">LOG</div>
+
 </body>
 </html>
